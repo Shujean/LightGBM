@@ -116,7 +116,7 @@ class DataPartition {
     const data_size_t cnt = leaf_count_[leaf];
 
     const int nblock = std::min(num_threads_, (cnt + min_inner_size - 1) / min_inner_size);
-    data_size_t inner_size = SIZE_ALIGNED((cnt + nblock - 1) / nblock);
+    data_size_t inner_size = (cnt + nblock - 1) / nblock;
     // split data multi-threading
     OMP_INIT_EX();
     #pragma omp parallel for schedule(static, 1)
