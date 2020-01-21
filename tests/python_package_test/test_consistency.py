@@ -109,7 +109,7 @@ class TestEngine(unittest.TestCase):
         X_test, _, X_test_fn = fd.load_dataset('.test', is_sparse=True)
         group_train = fd.load_field('.train.query')
         lgb_train = lgb.Dataset(X_train, y_train, group=group_train)
-        params = dict(self.params)
+        params = dict(fd.params)
         params['force_col_wise'] = True
         gbm = lgb.LGBMRanker(**params)
         gbm.fit(X_train, y_train, group=group_train)
