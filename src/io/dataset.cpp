@@ -627,7 +627,9 @@ MultiValBin* Dataset::TestMultiThreadingMethod(score_t* gradients, score_t* hess
   if (force_colwise && force_rowwise) {
     Log::Fatal("cannot set both `force_col_wise` and `force_row_wise` to `true`.");
   }
-  CHECK(num_groups_ > 0);
+  if (num_groups_ <= 0) {
+    return nullptr;
+  }
   if (force_colwise) {
     *is_hist_col_wise = true;
     return GetMultiBinFromSparseFeatures();
