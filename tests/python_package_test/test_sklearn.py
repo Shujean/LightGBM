@@ -115,7 +115,7 @@ class TestSklearn(unittest.TestCase):
                 callbacks=[lgb.reset_parameter(learning_rate=lambda x: max(0.01, 0.1 - 0.01 * x))])
         self.assertLessEqual(gbm.best_iteration_, 24)
         self.assertGreater(gbm.best_score_['valid_0']['ndcg@1'], 0.5769)
-        self.assertGreater(gbm.best_score_['valid_0']['ndcg@3'], 0.6048)
+        self.assertGreater(gbm.best_score_['valid_0']['ndcg@3'], 0.5920)
 
     def test_regression_with_custom_objective(self):
         X, y = load_boston(True)
