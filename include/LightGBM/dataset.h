@@ -382,15 +382,6 @@ class Dataset {
   inline uint64_t NumTotalBin() const {
     return group_bin_boundaries_.back();
   }
-
-  inline uint64_t GroupBinBoundaryAlign(int group_idx) const {
-    return group_bin_boundaries_aligned_[group_idx];
-  }
-
-  inline uint64_t NumTotalBinAligned() const {
-    return group_bin_boundaries_aligned_.back();
-  }
-
   inline std::vector<int> ValidFeatureIndices() const {
     std::vector<int> ret;
     for (int i = 0; i < num_total_features_; ++i) {
@@ -651,7 +642,6 @@ class Dataset {
   std::vector<int> feature2group_;
   std::vector<int> feature2subfeature_;
   std::vector<uint64_t> group_bin_boundaries_;
-  std::vector<uint64_t> group_bin_boundaries_aligned_;
   std::vector<int> group_feature_start_;
   std::vector<int> group_feature_cnt_;
   std::vector<int8_t> monotone_types_;
