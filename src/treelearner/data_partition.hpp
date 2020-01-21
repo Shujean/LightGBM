@@ -202,11 +202,11 @@ class DataPartition {
   /*! \brief number of data on one leaf */
   std::vector<data_size_t> leaf_count_;
   /*! \brief Store all data's indices, order by leaf[data_in_leaf0,..,data_leaf1,..] */
-  std::vector<data_size_t, Common::AlignmentAllocator<data_size_t, kAlignedSize>> indices_;
+  std::vector<data_size_t> indices_;
   /*! \brief team indices buffer for split */
-  std::vector<data_size_t, Common::AlignmentAllocator<data_size_t, kAlignedSize>> temp_left_indices_;
+  std::vector<data_size_t> temp_left_indices_;
   /*! \brief team indices buffer for split */
-  std::vector<data_size_t, Common::AlignmentAllocator<data_size_t, kAlignedSize>> temp_right_indices_;
+  std::vector<data_size_t> temp_right_indices_;
   /*! \brief used data indices, used for bagging */
   const data_size_t* used_data_indices_;
   /*! \brief used data count, used for bagging */

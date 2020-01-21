@@ -182,8 +182,8 @@ public:
 private:
   data_size_t num_data_;
   int num_bin_;
-  std::vector<VAL_T, Common::AlignmentAllocator<VAL_T, 32>> data_;
-  std::vector<data_size_t, Common::AlignmentAllocator<data_size_t, 32>> row_ptr_;
+  std::vector<VAL_T> data_;
+  std::vector<data_size_t> row_ptr_;
   std::vector<std::vector<VAL_T>> t_data_;
 
   MultiValDenseBin<VAL_T>(const MultiValDenseBin<VAL_T>& other)
