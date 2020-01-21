@@ -98,7 +98,7 @@ std::vector<std::vector<int>> FindGroups(const std::vector<std::unique_ptr<BinMa
                                          data_size_t total_sample_cnt,
                                          data_size_t num_data,
                                          bool is_use_gpu,
-                                         std::vector<bool>* multi_val_group) {
+                                         std::vector<int8_t>* multi_val_group) {
   const int max_search_group = 100;
   const int max_bin_per_group = 256;
   const data_size_t single_val_max_conflict_cnt = static_cast<data_size_t>(total_sample_cnt / 10000);
@@ -217,7 +217,7 @@ std::vector<std::vector<int>> FastFeatureBundling(const std::vector<std::unique_
                                                   const std::vector<int>& used_features,
                                                   data_size_t num_data,
                                                   bool is_use_gpu,
-                                                  std::vector<bool>* multi_val_group) {
+                                                  std::vector<int8_t>* multi_val_group) {
   Common::FunctionTimer fun_timer("Dataset::FastFeatureBundling", global_timer);
   std::vector<size_t> feature_non_zero_cnt;
   feature_non_zero_cnt.reserve(used_features.size());
@@ -262,7 +262,7 @@ std::vector<std::vector<int>> FastFeatureBundling(const std::vector<std::unique_
       tmp_num_per_col[fidx] = num_per_col[fidx];
     }
   }
-  std::vector<bool> group_is_multi_val, group_is_multi_val2;
+  std::vector<int8_t> group_is_multi_val, group_is_multi_val2;
   auto features_in_group = FindGroups(bin_mappers, used_features, sample_indices, tmp_num_per_col.data(), num_sample_col, total_sample_cnt, num_data, is_use_gpu, &group_is_multi_val);
   auto group2 = FindGroups(bin_mappers, feature_order_by_cnt, sample_indices, tmp_num_per_col.data(), num_sample_col, total_sample_cnt, num_data, is_use_gpu, &group_is_multi_val2);
 
@@ -277,7 +277,7 @@ std::vector<std::vector<int>> FastFeatureBundling(const std::vector<std::unique_
     int j = tmp_rand.NextShort(i + 1, num_group);
     std::swap(features_in_group[i], features_in_group[j]);
     // Use std::swap for vector<bool> will cause the wrong result..
-    std::vector<bool>::swap(group_is_multi_val[i], group_is_multi_val[j]);
+    std::swap(group_is_multi_val[i], group_is_multi_val[j]);
   }
   *multi_val_group = group_is_multi_val;
   return features_in_group;
@@ -307,7 +307,7 @@ void Dataset::Construct(
     Log::Warning("There are no meaningful features, as all feature values are constant.");
   }
   auto features_in_group = NoGroup(used_features);
-  std::vector<bool> group_is_multi_val(used_features.size(), false);
+  std::vector<int8_t> group_is_multi_val(used_features.size(), 0);
   if (io_config.enable_bundle && !used_features.empty()) {
     features_in_group = FastFeatureBundling(*bin_mappers,
                                             sample_non_zero_indices, sample_values, num_per_col, num_sample_col, static_cast<data_size_t>(total_sample_cnt),
