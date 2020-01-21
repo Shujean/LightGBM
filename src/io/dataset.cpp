@@ -55,7 +55,7 @@ int GetConfilctCount(const std::vector<bool>& mark, const int* indices, int num_
     if (mark[indices[i]]) {
       ++ret;
     }
-    if (ret >= max_cnt) {
+    if (ret > max_cnt) {
       return -1;
     }
   }
