@@ -80,13 +80,13 @@ void SerialTreeLearner::Init(const Dataset* train_data, bool is_constant_hessian
 }
 
 void SerialTreeLearner::GetMultiValBin(const Dataset* dataset, bool is_first_time) {
-  auto used_feature = GetUsedFeatures(true);
   if (is_first_time) {
+    auto used_feature = GetUsedFeatures(true);
     multi_val_bin_.reset(dataset->TestMultiThreadingMethod(ordered_gradients_.data(), ordered_hessians_.data(), used_feature,
       is_constant_hessian_, config_->force_col_wise, config_->force_row_wise, &is_hist_colwise_));
   } else {
     // cannot change is_hist_col_wise during training
-    multi_val_bin_.reset(dataset->TestMultiThreadingMethod(ordered_gradients_.data(), ordered_hessians_.data(), used_feature,
+    multi_val_bin_.reset(dataset->TestMultiThreadingMethod(ordered_gradients_.data(), ordered_hessians_.data(), is_feature_used_,
       is_constant_hessian_, is_hist_colwise_, !is_hist_colwise_, &is_hist_colwise_));
   }
 }
@@ -404,11 +404,7 @@ void SerialTreeLearner::FindBestSplitsFromHistograms(const std::vector<int8_t>& 
     smaller_node_used_features = GetUsedFeatures(false);
     larger_node_used_features = GetUsedFeatures(false);
   }
-  OMP_INIT_EX();
-  // find splits
-  #pragma omp parallel for schedule(static)
   for (int feature_index = 0; feature_index < num_features_; ++feature_index) {
-    OMP_LOOP_EX_BEGIN();
     if (!is_feature_used[feature_index]) { continue; }
     const int tid = omp_get_thread_num();
     SplitInfo smaller_split;
@@ -424,6 +420,9 @@ void SerialTreeLearner::FindBestSplitsFromHistograms(const std::vector<int8_t>& 
       smaller_leaf_splits_->max_constraint(),
       &smaller_split);
     smaller_split.feature = real_fidx;
+    if (real_fidx == 25) {
+      Log::Info("start");
+    }
     if (cegb_ != nullptr) {
       smaller_split.gain -= cegb_->DetlaGain(feature_index, real_fidx, smaller_leaf_splits_->LeafIndex(), smaller_leaf_splits_->num_data_in_leaf(), smaller_split);
     }
@@ -455,9 +454,7 @@ void SerialTreeLearner::FindBestSplitsFromHistograms(const std::vector<int8_t>& 
     if (larger_split > larger_best[tid] && larger_node_used_features[feature_index]) {
       larger_best[tid] = larger_split;
     }
-    OMP_LOOP_EX_END();
   }
-  OMP_THROW_EX();
 
   auto smaller_best_idx = ArrayArgs<SplitInfo>::ArgMax(smaller_best);
   int leaf = smaller_leaf_splits_->LeafIndex();
