@@ -677,7 +677,7 @@ void SerialTreeLearner::Split(Tree* tree, int best_leaf, int* left_leaf, int* ri
     std::vector<uint32_t> cat_bitset = Common::ConstructBitset(threshold_int.data(), best_split_info.num_cat_threshold);
 
     data_partition_->Split(best_leaf, train_data_, inner_feature_index,
-      cat_bitset_inner.data(), static_cast<int>(cat_bitset_inner.size()), best_split_info.default_left, *right_leaf);
+      cat_bitset_inner.data(), static_cast<int>(cat_bitset_inner.size()), best_split_info.default_left, next_leaf_id);
 
     best_split_info.left_count = data_partition_->leaf_count(*left_leaf);
     best_split_info.right_count = data_partition_->leaf_count(next_leaf_id);
