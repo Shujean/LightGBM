@@ -531,6 +531,10 @@ class Dataset {
     return feature_groups_[group]->SubFeatureIterator(sub_feature);
   }
 
+  inline bool IsMultiGroup(int i) const {
+    return feature_groups_[i]->is_multi_val_;
+  }
+
   inline double RealThreshold(int i, uint32_t threshold) const {
     const int group = feature2group_[i];
     const int sub_feature = feature2subfeature_[i];
