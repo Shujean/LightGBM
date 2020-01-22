@@ -205,8 +205,8 @@ void GPUTreeLearner::WaitAndGetHistograms(hist_t* histograms) {
     int bin_size = train_data_->FeatureGroupNumBin(dense_group_index);
     if (device_bin_mults_[i] == 1) {
       for (int j = 0; j < bin_size; ++j) {
-        GET_GRAD(old_histogram_array, j) = GET_GRAD(hist_outputs, i * device_bin_size_+ j)
-        GET_HESS(old_histogram_array, j) = GET_HESS(hist_outputs, i * device_bin_size_+ j)
+        GET_GRAD(old_histogram_array, j) = GET_GRAD(hist_outputs, i * device_bin_size_+ j);
+        GET_HESS(old_histogram_array, j) = GET_HESS(hist_outputs, i * device_bin_size_+ j);
       }
     } else {
       // values of this feature has been redistributed to multiple bins; need a reduction here
