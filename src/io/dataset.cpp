@@ -519,11 +519,14 @@ void PushDataToMultiValBin(int num_threads, data_size_t num_data, const std::vec
       for (data_size_t i = start; i < end; ++i) {
         cur_data.clear();
         for (size_t j = 0; j < most_freq_bins.size(); ++j) {
-          auto cur_bin = iters[tid][j]->Get(i) + offsets[j];
+          auto cur_bin = iters[tid][j]->Get(i);
           if (cur_bin == most_freq_bins[j]) {
             cur_bin = 0;
-          } else if (most_freq_bins[j] == 0) {
-            cur_bin -= 1;
+          } else {
+            cur_bin += offsets[j];
+            if (most_freq_bins[j] == 0) {
+              cur_bin -= 1;
+            }
           }
           cur_data.push_back(cur_bin);
         }
