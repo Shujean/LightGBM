@@ -39,10 +39,9 @@ public:
 
   void PushOneRow(int , data_size_t idx, const std::vector<uint32_t>& values) override {
     auto start = RowPtr(idx);
-    auto end = RowPtr(idx + 1);
     CHECK(num_feature_ == static_cast<int>(values.size()));
-    for (auto i = start; i < end; ++i) {
-      data_[i] = values[i - start];
+    for (auto i = 0; i < num_feature_; ++i) {
+      data_[start + i] = values[i];
     }
   }
 
@@ -75,7 +74,9 @@ public:
         PREFETCH_T0(hessians + data_indices[i + prefetch_size]);
         PREFETCH_T0(data_.data() + RowPtr(data_indices[i + prefetch_size]));
       }
-      for (int64_t idx = RowPtr(data_indices[i]); idx < RowPtr(data_indices[i] + 1); ++idx) {
+      auto idx = RowPtr(data_indices[i]);
+      const auto j_end = idx + num_feature_;
+      for (; idx < j_end; ++idx) {
         const VAL_T bin = data_[idx];
         ACC_GH(out, bin, gradients[data_indices[i]], hessians[data_indices[i]]);
       }
@@ -92,7 +93,9 @@ public:
         PREFETCH_T0(hessians + i + prefetch_size);
         PREFETCH_T0(data_.data() + RowPtr(i + prefetch_size));
       }
-      for (int64_t idx = RowPtr(i); idx < RowPtr(i + 1); ++idx) {
+      auto idx = RowPtr(i);
+      const auto j_end = idx + num_feature_;
+      for (; idx < j_end; ++idx) {
         const VAL_T bin = data_[idx];
         ACC_GH(out, bin, gradients[i], hessians[i]);
       }
@@ -108,7 +111,9 @@ public:
         PREFETCH_T0(gradients + data_indices[i + prefetch_size]);
         PREFETCH_T0(data_.data() + RowPtr(data_indices[i + prefetch_size]));
       }
-      for (int64_t idx = RowPtr(data_indices[i]); idx < RowPtr(data_indices[i] + 1); ++idx) {
+      auto idx = RowPtr(data_indices[i]);
+      const auto j_end = idx + num_feature_;
+      for (; idx < j_end; ++idx) {
         const VAL_T bin = data_[idx];
         ACC_GH(out, bin, gradients[data_indices[i]], 1.0f);
       }
@@ -124,7 +129,9 @@ public:
         PREFETCH_T0(gradients + i + prefetch_size);
         PREFETCH_T0(data_.data() + RowPtr(i + prefetch_size));
       }
-      for (int64_t idx = RowPtr(i); idx < RowPtr(i + 1); ++idx) {
+      auto idx = RowPtr(i);
+      const auto j_end = idx + num_feature_;
+      for (; idx < j_end; ++idx) {
         const VAL_T bin = data_[idx];
         ACC_GH(out, bin, gradients[i], 1.0f);
       }
