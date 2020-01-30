@@ -331,7 +331,7 @@ protected:
   }
 
   data_size_t num_data_;
-  std::vector<uint8_t> data_;
+  std::vector<uint8_t, Common::AlignmentAllocator<uint8_t, kAlignedSize>> data_;
   std::vector<uint8_t> buf_;
 };
 

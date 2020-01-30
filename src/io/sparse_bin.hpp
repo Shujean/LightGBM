@@ -504,8 +504,8 @@ public:
 private:
 
   data_size_t num_data_;
-  std::vector<uint8_t> deltas_;
-  std::vector<VAL_T> vals_;
+  std::vector<uint8_t, Common::AlignmentAllocator<uint8_t, kAlignedSize>> deltas_;
+  std::vector<VAL_T, Common::AlignmentAllocator<VAL_T, kAlignedSize>> vals_;
   data_size_t num_vals_;
   std::vector<std::vector<std::pair<data_size_t, VAL_T>>> push_buffers_;
   std::vector<std::pair<data_size_t, data_size_t>> fast_index_;

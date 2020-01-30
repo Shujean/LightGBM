@@ -662,7 +662,7 @@ MultiValBin* Dataset::TestMultiThreadingMethod(score_t* gradients, score_t* hess
     std::unique_ptr<MultiValBin> all_bin;
     sparse_bin.reset(GetMultiBinFromSparseFeatures());
     all_bin.reset(GetMultiBinFromAllFeatures());
-    std::vector<hist_t> hist_data(NumTotalBinAligned() * 2);
+    std::vector<hist_t, Common::AlignmentAllocator<hist_t, kAlignedSize>> hist_data(NumTotalBinAligned() * 2);
     std::chrono::duration<double, std::milli> col_wise_time, row_wise_time;
     auto start_time = std::chrono::steady_clock::now();
     ConstructHistograms(is_feature_used, nullptr, num_data_, gradients, hessians, gradients, hessians, is_constant_hessian, sparse_bin.get(), true, hist_data.data());

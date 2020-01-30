@@ -285,7 +285,7 @@ public:
 
 private:
   data_size_t num_data_;
-  std::vector<VAL_T> data_;
+  std::vector<VAL_T, Common::AlignmentAllocator<VAL_T, kAlignedSize>> data_;
 
   DenseBin<VAL_T>(const DenseBin<VAL_T>& other)
     : num_data_(other.num_data_), data_(other.data_) {
