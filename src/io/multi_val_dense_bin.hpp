@@ -22,7 +22,7 @@ public:
 
   explicit MultiValDenseBin(data_size_t num_data, int num_bin, int num_feature)
     : num_data_(num_data), num_bin_(num_bin), num_feature_(num_feature) {
-    data_.reserve(static_cast<size_t>(num_data_) * num_feature_);
+    data_.size(static_cast<size_t>(num_data_) * num_feature_, 0);
   }
 
   ~MultiValDenseBin() {
@@ -40,8 +40,9 @@ public:
   void PushOneRow(int , data_size_t idx, const std::vector<uint32_t>& values) override {
     auto start = RowPtr(idx);
     auto end = RowPtr(idx + 1);
+    CHECK(num_feature_ == static_cast<int>(values.size()));
     for (auto i = start; i < end; ++i) {
-      data_[i] = values[i];
+      data_[i] = values[i - start];
     }
   }
 
