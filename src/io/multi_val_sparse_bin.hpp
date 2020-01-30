@@ -79,6 +79,10 @@ public:
     t_data_.shrink_to_fit();
   }
 
+  bool IsSparse() override {
+    return true;
+  }
+
   void ReSize(data_size_t num_data) override {
     if (num_data_ != num_data) {
       num_data_ = num_data;

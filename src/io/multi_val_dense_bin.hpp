@@ -20,19 +20,9 @@ template <typename VAL_T>
 class MultiValDenseBin : public MultiValBin {
 public:
 
-  explicit MultiValDenseBin(data_size_t num_data, int num_bin)
-    : num_data_(num_data), num_bin_(num_bin) {
-    row_ptr_.resize(num_data_ + 1, 0);
-    data_.reserve(num_data_);
-    int num_threads = 1;
-    #pragma omp parallel
-    #pragma omp master
-    {
-      num_threads = omp_get_num_threads();
-    }
-    if (num_threads > 1) {
-      t_data_.resize(num_threads - 1);
-    }
+  explicit MultiValDenseBin(data_size_t num_data, int num_bin, int num_feature)
+    : num_data_(num_data), num_bin_(num_bin), num_feature_(num_feature) {
+    data_.reserve(static_cast<size_t>(num_data_) * num_feature_);
   }
 
   ~MultiValDenseBin() {
@@ -47,36 +37,20 @@ public:
   }
 
 
-  void PushOneRow(int tid, data_size_t idx, const std::vector<uint32_t>& values) override {
-    row_ptr_[idx + 1] = static_cast<data_size_t>(values.size());
-    if (tid == 0) {
-      for (auto val : values) {
-        data_.push_back(val);
-      }
-    } else {
-      for (auto val : values) {
-        t_data_[tid - 1].push_back(val);
-      }
+  void PushOneRow(int , data_size_t idx, const std::vector<uint32_t>& values) override {
+    auto start = RowPtr(idx);
+    auto end = RowPtr(idx + 1);
+    for (auto i = start; i < end; ++i) {
+      data_[i] = values[i];
     }
   }
 
   void FinishLoad() override {
-    for (data_size_t i = 0; i < num_data_; ++i) {
-      row_ptr_[i + 1] += row_ptr_[i];
-    }
-    if (t_data_.size() > 0) {
-      size_t offset = data_.size();
-      data_.resize(row_ptr_[num_data_]);
-      for (size_t tid = 0; tid < t_data_.size(); ++tid) {
-        std::memcpy(data_.data() + offset, t_data_[tid].data(), t_data_[tid].size() * sizeof(VAL_T));
-        offset += t_data_[tid].size();
-        t_data_[tid].clear();
-      }
-    }
-    row_ptr_.shrink_to_fit();
-    data_.shrink_to_fit();
-    t_data_.clear();
-    t_data_.shrink_to_fit();
+
+  }
+
+  bool IsSparse() override{
+    return false;
   }
 
   void ReSize(data_size_t num_data) override {
@@ -96,12 +70,11 @@ public:
     const data_size_t prefetch_size = 16;
     for (data_size_t i = start; i < end; ++i) {
       if (prefetch_size + i < end) {
-        PREFETCH_T0(row_ptr_.data() + data_indices[i + prefetch_size]);
         PREFETCH_T0(gradients + data_indices[i + prefetch_size]);
         PREFETCH_T0(hessians + data_indices[i + prefetch_size]);
-        PREFETCH_T0(data_.data() + row_ptr_[data_indices[i + prefetch_size]]);
+        PREFETCH_T0(data_.data() + RowPtr(data_indices[i + prefetch_size]));
       }
-      for (data_size_t idx = RowPtr(data_indices[i]); idx < RowPtr(data_indices[i] + 1); ++idx) {
+      for (int64_t idx = RowPtr(data_indices[i]); idx < RowPtr(data_indices[i] + 1); ++idx) {
         const VAL_T bin = data_[idx];
         ACC_GH(out, bin, gradients[data_indices[i]], hessians[data_indices[i]]);
       }
@@ -114,12 +87,11 @@ public:
     const data_size_t prefetch_size = 16;
     for (data_size_t i = start; i < end; ++i) {
       if (prefetch_size + i < end) {
-        PREFETCH_T0(row_ptr_.data() + i + prefetch_size);
         PREFETCH_T0(gradients + i + prefetch_size);
         PREFETCH_T0(hessians + i + prefetch_size);
-        PREFETCH_T0(data_.data() + row_ptr_[i + prefetch_size]);
+        PREFETCH_T0(data_.data() + RowPtr(i + prefetch_size));
       }
-      for (data_size_t idx = RowPtr(i); idx < RowPtr(i + 1); ++idx) {
+      for (int64_t idx = RowPtr(i); idx < RowPtr(i + 1); ++idx) {
         const VAL_T bin = data_[idx];
         ACC_GH(out, bin, gradients[i], hessians[i]);
       }
@@ -132,11 +104,10 @@ public:
     const data_size_t prefetch_size = 16;
     for (data_size_t i = start; i < end; ++i) {
       if (prefetch_size + i < end) {
-        PREFETCH_T0(row_ptr_.data() + data_indices[i + prefetch_size]);
         PREFETCH_T0(gradients + data_indices[i + prefetch_size]);
-        PREFETCH_T0(data_.data() +  row_ptr_[data_indices[i + prefetch_size]]);
+        PREFETCH_T0(data_.data() + RowPtr(data_indices[i + prefetch_size]));
       }
-      for (data_size_t idx = RowPtr(data_indices[i]); idx < RowPtr(data_indices[i] + 1); ++idx) {
+      for (int64_t idx = RowPtr(data_indices[i]); idx < RowPtr(data_indices[i] + 1); ++idx) {
         const VAL_T bin = data_[idx];
         ACC_GH(out, bin, gradients[data_indices[i]], 1.0f);
       }
@@ -149,11 +120,10 @@ public:
     const data_size_t prefetch_size = 16;
     for (data_size_t i = start; i < end; ++i) {
       if (prefetch_size + i < end) {
-        PREFETCH_T0(row_ptr_.data() + i + prefetch_size);
         PREFETCH_T0(gradients + i + prefetch_size);
-        PREFETCH_T0(data_.data() + row_ptr_[i + prefetch_size]);
+        PREFETCH_T0(data_.data() + RowPtr(i + prefetch_size));
       }
-      for (data_size_t idx = RowPtr(i); idx < RowPtr(i + 1); ++idx) {
+      for (int64_t idx = RowPtr(i); idx < RowPtr(i + 1); ++idx) {
         const VAL_T bin = data_[idx];
         ACC_GH(out, bin, gradients[i], 1.0f);
       }
@@ -163,18 +133,16 @@ public:
 
   void CopySubset(const Bin* full_bin, const data_size_t* used_indices, data_size_t num_used_indices) override {
     auto other_bin = dynamic_cast<const MultiValDenseBin<VAL_T>*>(full_bin);
-    row_ptr_.resize(num_data_ + 1, 0);
     data_.clear();
     for (data_size_t i = 0; i < num_used_indices; ++i) {
-      for (data_size_t j = other_bin->row_ptr_[used_indices[i]]; j < other_bin->row_ptr_[used_indices[i] + 1]; ++j) {
+      for (int64_t j = other_bin->RowPtr(used_indices[i]); j < other_bin->RowPtr(used_indices[i] + 1); ++j) {
         data_.push_back(other_bin->data_[j]);
       }
-      row_ptr_[i + 1] = row_ptr_[i] + other_bin->row_ptr_[used_indices[i] + 1] - other_bin->row_ptr_[used_indices[i]];
     }
   }
 
-  inline data_size_t RowPtr(data_size_t idx) const {
-    return row_ptr_[idx];
+  inline int64_t RowPtr(data_size_t idx) const {
+    return static_cast<int64_t>(idx)* num_feature_;
   }
 
   MultiValDenseBin<VAL_T>* Clone() override;
@@ -182,12 +150,11 @@ public:
 private:
   data_size_t num_data_;
   int num_bin_;
+  int num_feature_;
   std::vector<VAL_T> data_;
-  std::vector<data_size_t> row_ptr_;
-  std::vector<std::vector<VAL_T>> t_data_;
 
   MultiValDenseBin<VAL_T>(const MultiValDenseBin<VAL_T>& other)
-    : num_data_(other.num_data_), data_(other.data_), row_ptr_(other.row_ptr_){
+    : num_data_(other.num_data_), data_(other.data_), num_feature_(other.num_feature_){
   }
 };
 
