@@ -352,6 +352,7 @@ void Dataset::Construct(
   feature_groups_.shrink_to_fit();
   group_bin_boundaries_.clear();
   uint64_t num_total_bin = 0;
+  uint64_t num_total_bin_aligned = 0;
   group_bin_boundaries_.push_back(num_total_bin);
   for (int i = 0; i < num_groups_; ++i) {
     num_total_bin += feature_groups_[i]->num_total_bin_;
@@ -1086,11 +1087,12 @@ void Dataset::ConstructHistogramsMultiVal(const MultiValBin* multi_val_bin, cons
 
   global_timer.Start("Dataset::sparse_bin_histogram");
   const int num_bin = multi_val_bin->num_bin();
+  const int num_bin_aligned = (num_bin + kAlignedSize - 1) / kAlignedSize * kAlignedSize;
   const int min_data_block_size = 1024;
   const int n_data_block = std::min(num_threads, (num_data + min_data_block_size - 1) / min_data_block_size);
   const int data_block_size = (num_data + n_data_block - 1) / n_data_block;
 
-  const size_t buf_size = static_cast<size_t>(n_data_block - 1)* num_bin * 2;
+  const size_t buf_size = static_cast<size_t>(n_data_block - 1)* num_bin_aligned * 2;
   if (hist_buf_.size() < buf_size) {
     hist_buf_.resize(buf_size);
   }
@@ -1101,7 +1103,7 @@ void Dataset::ConstructHistogramsMultiVal(const MultiValBin* multi_val_bin, cons
     data_size_t end = std::min(start + data_block_size, num_data);
     auto data_ptr = hist_data;
     if (tid > 0) {
-      data_ptr = hist_buf_.data() + static_cast<size_t>(num_bin) * 2 * (tid - 1);
+      data_ptr = hist_buf_.data() + static_cast<size_t>(num_bin_aligned) * 2 * (tid - 1);
     }
     std::memset(reinterpret_cast<void*>(data_ptr), 0, num_bin* KHistEntrySize);
     if (data_indices != nullptr && num_data < num_data_) {
@@ -1131,7 +1133,7 @@ void Dataset::ConstructHistogramsMultiVal(const MultiValBin* multi_val_bin, cons
       const int start = t * bin_block_size;
       const int end = std::min(start + bin_block_size, num_bin);
       for (int tid = 1; tid < n_data_block; ++tid) {
-        auto src_ptr = hist_buf_.data() + static_cast<size_t>(num_bin) * 2 * (tid - 1);
+        auto src_ptr = hist_buf_.data() + static_cast<size_t>(num_bin_aligned) * 2 * (tid - 1);
         for (int i = start * 2; i < end * 2; ++i) {
           hist_data[i] += src_ptr[i];
         }
@@ -1143,7 +1145,7 @@ void Dataset::ConstructHistogramsMultiVal(const MultiValBin* multi_val_bin, cons
       const int start = t * bin_block_size;
       const int end = std::min(start + bin_block_size, num_bin);
       for (int tid = 1; tid < n_data_block; ++tid) {
-        auto src_ptr = hist_buf_.data() + static_cast<size_t>(num_bin) * 2 * (tid - 1);
+        auto src_ptr = hist_buf_.data() + static_cast<size_t>(num_bin_aligned) * 2 * (tid - 1);
         for (int i = start * 2; i < end * 2; ++i) {
           hist_data[i] += src_ptr[i];
         }
