@@ -420,9 +420,6 @@ void SerialTreeLearner::FindBestSplitsFromHistograms(const std::vector<int8_t>& 
       smaller_leaf_splits_->max_constraint(),
       &smaller_split);
     smaller_split.feature = real_fidx;
-    if (real_fidx == 25) {
-      Log::Info("start");
-    }
     if (cegb_ != nullptr) {
       smaller_split.gain -= cegb_->DetlaGain(feature_index, real_fidx, smaller_leaf_splits_->LeafIndex(), smaller_leaf_splits_->num_data_in_leaf(), smaller_split);
     }
