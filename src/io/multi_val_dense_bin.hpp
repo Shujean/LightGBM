@@ -22,7 +22,7 @@ public:
 
   explicit MultiValDenseBin(data_size_t num_data, int num_bin, int num_feature)
     : num_data_(num_data), num_bin_(num_bin), num_feature_(num_feature) {
-    data_.resize(static_cast<size_t>(num_data_) * num_feature_, 0);
+    data_.resize(static_cast<size_t>(num_data_) * num_feature_, static_cast<VAL_T>(0));
   }
 
   ~MultiValDenseBin() {
@@ -143,7 +143,7 @@ public:
   }
 
   inline int64_t RowPtr(data_size_t idx) const {
-    return static_cast<int64_t>(idx)* num_feature_;
+    return static_cast<int64_t>(idx) * num_feature_;
   }
 
   MultiValDenseBin<VAL_T>* Clone() override;
@@ -155,7 +155,7 @@ private:
   std::vector<VAL_T> data_;
 
   MultiValDenseBin<VAL_T>(const MultiValDenseBin<VAL_T>& other)
-    : num_data_(other.num_data_), data_(other.data_), num_feature_(other.num_feature_){
+    : num_data_(other.num_data_), num_bin_(other.num_bin_), num_feature_(other.num_feature_), data_(other.data_) {
   }
 };
 

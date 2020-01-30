@@ -191,7 +191,7 @@ private:
   std::vector<std::vector<VAL_T>> t_data_;
 
   MultiValSparseBin<VAL_T>(const MultiValSparseBin<VAL_T> & other)
-    : num_data_(other.num_data_), data_(other.data_), row_ptr_(other.row_ptr_) {
+    : num_data_(other.num_data_), num_bin_(other.num_bin_), data_(other.data_), row_ptr_(other.row_ptr_) {
   }
 };
 
