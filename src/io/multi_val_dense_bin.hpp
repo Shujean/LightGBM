@@ -22,7 +22,7 @@ public:
 
   explicit MultiValDenseBin(data_size_t num_data, int num_bin, int num_feature)
     : num_data_(num_data), num_bin_(num_bin), num_feature_(num_feature) {
-    data_.size(static_cast<size_t>(num_data_) * num_feature_, 0);
+    data_.resize(static_cast<size_t>(num_data_) * num_feature_, 0);
   }
 
   ~MultiValDenseBin() {
