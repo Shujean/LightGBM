@@ -567,10 +567,10 @@ MultiValBin* Dataset::GetMultiBinFromSparseFeatures() const {
     most_freq_bins.push_back(feature_groups_[multi_group_id]->bin_mappers_[i]->GetMostFreqBin());
     sum_sparse_rate += feature_groups_[multi_group_id]->bin_mappers_[i]->sparse_rate();
   }
-  sum_sparse_rate /= num_features_;
+  sum_sparse_rate /= num_feature;
 
   std::unique_ptr<MultiValBin> ret;
-  ret.reset(MultiValBin::CreateMultiValBin(num_data_, offsets.back(), num_features_, sum_sparse_rate));
+  ret.reset(MultiValBin::CreateMultiValBin(num_data_, offsets.back(), num_feature, sum_sparse_rate));
   PushDataToMultiValBin(num_threads, num_data_, most_freq_bins, offsets, iters, ret.get());
   ret->FinishLoad();
   return ret.release();
